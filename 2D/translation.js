@@ -6,17 +6,24 @@ var vertexShaderSource = `#version 300 es
 // It will receive data from a buffer
 in vec2 a_position;
 
+// Used to pass in the resolution of the canvas
 uniform vec2 u_resolution;
+
+// translation to add to position
+uniform vec2 u_translation;
 
 // all shaders have a main function
 void main() {
-  // convert the position from pixel to 0.0 to 1.0
-  vec2 zeroToOne = a_position / u_resolution;
+  // Add in the translation
+  vec2 position = a_position + u_translation;
+
+  // convert the position from pixels to 0.0 to 1.0
+  vec2 zeroToOne = position / u_resolution;
 
   // convert from 0->1 to 0->2
   vec2 zeroToTwo = zeroToOne * 2.0;
 
-  // convert from 0->2 to -1->+1 (clip space)
+  // convert from 0->2 to -1->+1 (clipspace)
   vec2 clipSpace = zeroToTwo - 1.0;
 
   gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
@@ -25,8 +32,6 @@ void main() {
 
 var fragmentShaderSource = `#version 300 es
 
-// fragment shaders don't have a default precision so we need
-// to pick one. highp is a good default. It means "high precision"
 precision highp float;
 
 uniform vec4 u_color;
@@ -35,13 +40,13 @@ uniform vec4 u_color;
 out vec4 outColor;
 
 void main() {
-  // Just set the output to a constant redish-purple
   outColor = u_color;
 }
 `;
 
 function main() {
   // Get A WebGL context
+  /** @type {HTMLCanvasElement} */
   var canvas = document.querySelector("#c");
   var gl = canvas.getContext("webgl2");
   if (!gl) {
@@ -58,12 +63,10 @@ function main() {
   // look up uniform locations
   var resolutionUniformLocation = gl.getUniformLocation(program, "u_resolution");
   var colorLocation = gl.getUniformLocation(program, "u_color");
+  var translationLocation = gl.getUniformLocation(program, "u_translation");
 
-  // Create a buffer and put three 2d clip space points in it
+  // Create a buffer
   var positionBuffer = gl.createBuffer();
-
-  // Bind it to ARRAY_BUFFER (think of it as ARRAY_BUFFER = positionBuffer)
-  gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
 
   // Create a vertex array object (attribute state)
   var vao = gl.createVertexArray();
@@ -73,6 +76,12 @@ function main() {
 
   // Turn on the attribute
   gl.enableVertexAttribArray(positionAttributeLocation);
+
+  // Bind it to ARRAY_BUFFER (think of it as ARRAY_BUFFER = positionBuffer)
+  gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+
+  // Set Geometry.
+  setGeometry(gl);
 
   // Tell the attribute how to get data out of positionBuffer (ARRAY_BUFFER)
   var size = 2;          // 2 components per iteration
@@ -86,8 +95,6 @@ function main() {
   // First let's make some variables
   // to hold the translation, width and height of the rectangle
   var translation = [0, 0];
-  var width = 100;
-  var height = 30;
   var color = [Math.random(), Math.random(), Math.random(), 1];
 
   drawScene();
@@ -103,6 +110,7 @@ function main() {
     };
   }
 
+  // Draw the scene.
   function drawScene() {
     webglUtils.resizeCanvasToDisplaySize(gl.canvas);
 
@@ -111,7 +119,7 @@ function main() {
 
     // Clear the canvas
     gl.clearColor(0, 0, 0, 0);
-    gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     // Tell it to use our program (pair of shaders)
     gl.useProgram(program);
@@ -120,43 +128,54 @@ function main() {
     gl.bindVertexArray(vao);
 
     // Pass in the canvas resolution so we can convert from
-    // pixels to clip space in the shader
+    // pixels to clipspace in the shader
     gl.uniform2f(resolutionUniformLocation, gl.canvas.width, gl.canvas.height);
 
-    // Update the position buffer with rectangle positions
-    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-    setRectangle(gl, translation[0], translation[1], width, height);
-
-    // Set a random color.
+    // Set the color.
     gl.uniform4fv(colorLocation, color);
+
+    // Set the translation.
+    gl.uniform2fv(translationLocation, translation);
 
     // draw
     var primitiveType = gl.TRIANGLES;
     var offset = 0;
-    var count = 6;
+    var count = 18;
     gl.drawArrays(primitiveType, offset, count);
   }
 }
 
-// Fills the buffer with the values that define a rectangle.
-function setRectangle(gl, x, y, width, height) {
-  var x1 = x;
-  var x2 = x + width;
-  var y1 = y;
-  var y2 = y + height;
+// Fill the current ARRAY_BUFFER buffer
+// with the values that define a letter 'F'.
+function setGeometry(gl) {
+  gl.bufferData(
+      gl.ARRAY_BUFFER,
+      new Float32Array([
+          // left column
+          0, 0,
+          30, 0,
+          0, 150,
+          0, 150,
+          30, 0,
+          30, 150,
 
-  // NOTE: gl.bufferData(gl.ARRAY_BUFFER, ...) will affect
-  // whatever buffer is bound to the `ARRAY_BUFFER` bind point
-  // but so far we only have one buffer. If we had more than one
-  // buffer we'd want to bind that buffer to `ARRAY_BUFFER` first.
+          // top rung
+          30, 0,
+          100, 0,
+          30, 30,
+          30, 30,
+          100, 0,
+          100, 30,
 
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
-     x1, y1,
-     x2, y1,
-     x1, y2,
-     x1, y2,
-     x2, y1,
-     x2, y2]), gl.STATIC_DRAW);
+          // middle rung
+          30, 60,
+          67, 60,
+          30, 90,
+          30, 90,
+          67, 60,
+          67, 90,
+      ]),
+      gl.STATIC_DRAW);
 }
 
 main();
