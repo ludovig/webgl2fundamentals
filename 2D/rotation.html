@@ -1,0 +1,34 @@
+<!-- Licensed under a BSD license. See license.html for license -->
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>WebGL2 - Fundamentals</title>
+    <link type="text/css" href="../resources/webgl-tutorials.css" rel="stylesheet" />
+  </head>
+  <body>
+    <canvas id="c"></canvas>
+      <div id="uiContainer">
+        <div id="ui">
+          <div id="x"></div>
+          <div id="y"></div>
+          <div id="rotation"></div>
+        </div>
+      </div>
+  </body>
+</html>
+<script src="../resources/jquery-1.7.1.min.js"></script>
+<script src="../resources/jquery-ui-1.8.16.custom.min.js"></script>
+<script src="../resources/jquery.mousecapture.js"></script>
+<script src="../resources/jquery-gman-circle.js"></script>
+<!--
+for most samples webgl-utils only provides shader compiling/linking and
+canvas resizing because why clutter the examples with code that's the same in every sample.
+See https://webgl2fundamentals.org/webgl/lessons/webgl-boilerplate.html
+and https://webgl2fundamentals.org/webgl/lessons/webgl-resizing-the-canvas.html
+for webgl-utils, m3, m4, and webgl-lessons-ui.
+-->
+<script src="../resources/webgl-utils.js"></script>
+<script src="../resources/webgl-lessons-ui.js"></script>
+<script src="./rotation.js"></script>
