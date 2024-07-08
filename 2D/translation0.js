@@ -83,45 +83,59 @@ function main() {
   gl.vertexAttribPointer(
       positionAttributeLocation, size, type, normalize, stride, offset);
 
-  webglUtils.resizeCanvasToDisplaySize(gl.canvas);
+  // First let's make some variables
+  // to hold the translation, width and height of the rectangle
+  var translation = [0, 0];
+  var width = 100;
+  var height = 30;
+  var color = [Math.random(), Math.random(), Math.random(), 1];
 
-  // Tell WebGL how to convert from clip space to pixels
-  gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+  drawScene();
 
-  // Clear the canvas
-  gl.clearColor(0, 0, 0, 0);
-  gl.clear(gl.COLOR_BUFFER_BIT);
+  // Setup a ui.
+  webglLessonsUI.setupSlider("#x", {slide: updatePosition(0), max: gl.canvas.width });
+  webglLessonsUI.setupSlider("#y", {slide: updatePosition(1), max: gl.canvas.height});
 
-  // Tell it to use our program (pair of shaders)
-  gl.useProgram(program);
+  function updatePosition(index) {
+    return function(event, ui) {
+      translation[index] = ui.value;
+      drawScene();
+    };
+  }
 
-  // Pass in the canvas resolution so we can convert from
-  // pixels to clip space in the shader
-  gl.uniform2f(resolutionUniformLocation, gl.canvas.width, gl.canvas.height);
+  function drawScene() {
+    webglUtils.resizeCanvasToDisplaySize(gl.canvas);
 
-  // Bind the attribute/buffer set we want.
-  gl.bindVertexArray(vao);
+    // Tell WebGL how to convert from clip space to pixels
+    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
 
-  // draw 50 random rectangles in random colors
-  for (var ii = 0; ii < 50; ++ii) {
-    // Put a rectangle in the position buffer
-    setRectangle(
-        gl, randomInt(300), randomInt(300), randomInt(300), randomInt(300));
+    // Clear the canvas
+    gl.clearColor(0, 0, 0, 0);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+
+    // Tell it to use our program (pair of shaders)
+    gl.useProgram(program);
+
+    // Bind the attribute/buffer set we want.
+    gl.bindVertexArray(vao);
+
+    // Pass in the canvas resolution so we can convert from
+    // pixels to clip space in the shader
+    gl.uniform2f(resolutionUniformLocation, gl.canvas.width, gl.canvas.height);
+
+    // Update the position buffer with rectangle positions
+    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+    setRectangle(gl, translation[0], translation[1], width, height);
 
     // Set a random color.
-    gl.uniform4f(colorLocation, Math.random(), Math.random(), Math.random(), 1);
+    gl.uniform4fv(colorLocation, color);
 
-    // Draw the rectangle.
+    // draw
     var primitiveType = gl.TRIANGLES;
     var offset = 0;
     var count = 6;
     gl.drawArrays(primitiveType, offset, count);
   }
-  // draw
-  var primitiveType = gl.TRIANGLES;
-  var offset = 0;
-  var count = 6;
-  gl.drawArrays(primitiveType, offset, count);
 }
 
 // Returns a random integer from 0 to range - 1.
