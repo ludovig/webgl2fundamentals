@@ -9,3 +9,4 @@ Status:
 - [ ] 2D translation, rotation, scale, matrix math
   - [x] 2D translation
   - [x] 2D rotation
+  - [x] 2D scale
