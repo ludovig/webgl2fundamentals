@@ -5,6 +5,7 @@ Status:
 
 - [x] Fundamentals
   - [x] Fundamentals
+  - [x] How it works
 
 - [x] 2D translation, rotation, scale, matrix math
   - [x] 2D translation
