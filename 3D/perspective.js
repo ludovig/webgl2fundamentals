@@ -8,13 +8,21 @@ in vec4 a_position;
 in vec4 a_color;
 
 uniform mat4 u_matrix;
+uniform float u_fudgeFactor;
 
 // a varying the color to the fragment shader
 out vec4 v_color;
 
 // all shaders have a main function
 void main() {
-  gl_Position = u_matrix * a_position;
+  // Multiply the position by the matrix.
+  vec4 position = u_matrix * a_position;
+
+  // Adjust the z to divide by
+  float zToDivideBy = 1.0 + position.z * u_fudgeFactor;
+
+  // Divide x and y by z.
+  gl_Position = vec4(position.xy / zToDivideBy, position.zw);
 
   // Pass the color to the fragment shader.
   v_color = a_color;
@@ -55,6 +63,7 @@ function main() {
 
   // look up uniform locations
   var matrixLocation = gl.getUniformLocation(program, "u_matrix");
+  var fudgeLocation =  gl.getUniformLocation(program, "u_fudgeFactor");
 
   // Create a buffer
   var positionBuffer = gl.createBuffer();
@@ -115,10 +124,12 @@ function main() {
   var translation = [45, 150, 0];
   var rotation = [degToRad(40), degToRad(25), degToRad(325)];
   var scale = [1, 1, 1];
+  var fudgeFactor = 1;
 
   drawScene();
 
   // Setup a ui.
+  webglLessonsUI.setupSlider("#fudgeFactor", {value: fudgeFactor, slide: updateFudgeFactor, max: 2, step: 0.001, precision: 3 });
   webglLessonsUI.setupSlider("#x",      {value: translation[0], slide: updatePosition(0), max: gl.canvas.width });
   webglLessonsUI.setupSlider("#y",      {value: translation[1], slide: updatePosition(1), max: gl.canvas.height});
   webglLessonsUI.setupSlider("#z",      {value: translation[2], slide: updatePosition(2), max: gl.canvas.height});
@@ -128,6 +139,11 @@ function main() {
   webglLessonsUI.setupSlider("#scaleX", {value: scale[0], slide: updateScale(0), min: -5, max: 5, step: 0.01, precision: 2});
   webglLessonsUI.setupSlider("#scaleY", {value: scale[1], slide: updateScale(1), min: -5, max: 5, step: 0.01, precision: 2});
   webglLessonsUI.setupSlider("#scaleZ", {value: scale[2], slide: updateScale(2), min: -5, max: 5, step: 0.01, precision: 2});
+
+  function updateFudgeFactor(event, ui) {
+    fudgeFactor = ui.value;
+    drawScene();
+  }
 
   function updatePosition(index) {
     return function(event, ui) {
@@ -191,6 +207,9 @@ function main() {
 
     // Set the matrix.
     gl.uniformMatrix4fv(matrixLocation, false, matrix);
+
+    // Set the fudge factor.
+    gl.uniform1f(fudgeLocation, fudgeFactor);
 
     // draw
     var primitiveType = gl.TRIANGLES;
