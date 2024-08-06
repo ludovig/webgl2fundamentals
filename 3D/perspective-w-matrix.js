@@ -8,7 +8,6 @@ in vec4 a_position;
 in vec4 a_color;
 
 uniform mat4 u_matrix;
-uniform float u_fudgeFactor;
 
 // a varying the color to the fragment shader
 out vec4 v_color;
@@ -16,13 +15,7 @@ out vec4 v_color;
 // all shaders have a main function
 void main() {
   // Multiply the position by the matrix.
-  vec4 position = u_matrix * a_position;
-
-  // Adjust the z to divide by
-  float zToDivideBy = 1.0 + position.z * u_fudgeFactor;
-
-  // Divide x and y by z.
-  gl_Position = vec4(position.xyz, zToDivideBy);
+  gl_Position = u_matrix * a_position;
 
   // Pass the color to the fragment shader.
   v_color = a_color;
@@ -44,6 +37,15 @@ void main() {
 }
 `;
 
+function makeZToWMatrix(fudgeFactor) {
+  return [
+    1, 0, 0, 0,
+    0, 1, 0, 0,
+    0, 0, 1, fudgeFactor,
+    0, 0, 0, 1,
+  ];
+}
+
 function main() {
   // Get A WebGL context
   /** @type {HTMLCanvasElement} */
@@ -63,7 +65,6 @@ function main() {
 
   // look up uniform locations
   var matrixLocation = gl.getUniformLocation(program, "u_matrix");
-  var fudgeLocation =  gl.getUniformLocation(program, "u_fudgeFactor");
 
   // Create a buffer
   var positionBuffer = gl.createBuffer();
@@ -192,7 +193,8 @@ function main() {
     gl.bindVertexArray(vao);
 
     // Compute the matrix
-    var matrix = m4.projection(gl.canvas.clientWidth, gl.canvas.clientHeight, 400);
+    var matrix = makeZToWMatrix(fudgeFactor);
+    matrix = m4.multiply(matrix, m4.projection(gl.canvas.clientWidth, gl.canvas.clientHeight, 400));
     matrix = m4.translate(matrix, translation[0], translation[1], translation[2]);
     matrix = m4.xRotate(matrix, rotation[0]);
     matrix = m4.yRotate(matrix, rotation[1]);
@@ -201,9 +203,6 @@ function main() {
 
     // Set the matrix.
     gl.uniformMatrix4fv(matrixLocation, false, matrix);
-
-    // Set the fudge factor.
-    gl.uniform1f(fudgeLocation, fudgeFactor);
 
     // draw
     var primitiveType = gl.TRIANGLES;

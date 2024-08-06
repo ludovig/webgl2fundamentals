@@ -132,7 +132,7 @@ function main() {
   webglLessonsUI.setupSlider("#fudgeFactor", {value: fudgeFactor, slide: updateFudgeFactor, max: 2, step: 0.001, precision: 3 });
   webglLessonsUI.setupSlider("#x",      {value: translation[0], slide: updatePosition(0), max: gl.canvas.width });
   webglLessonsUI.setupSlider("#y",      {value: translation[1], slide: updatePosition(1), max: gl.canvas.height});
-  webglLessonsUI.setupSlider("#z",      {value: translation[2], slide: updatePosition(2), max: gl.canvas.height});
+  webglLessonsUI.setupSlider("#z",      {value: translation[2], slide: updatePosition(2), max: gl.canvas.height, min: -gl.canvas.height});
   webglLessonsUI.setupSlider("#angleX", {value: radToDeg(rotation[0]), slide: updateRotation(0), max: 360});
   webglLessonsUI.setupSlider("#angleY", {value: radToDeg(rotation[1]), slide: updateRotation(1), max: 360});
   webglLessonsUI.setupSlider("#angleZ", {value: radToDeg(rotation[2]), slide: updateRotation(2), max: 360});
@@ -192,13 +192,7 @@ function main() {
     gl.bindVertexArray(vao);
 
     // Compute the matrix
-    var left = 0;
-    var right = gl.canvas.clientWidth;
-    var bottom = gl.canvas.clientHeight;
-    var top = 0;
-    var near = 400;
-    var far = -400;
-    var matrix = m4.orthographic(left, right, bottom, top, near, far);
+    var matrix = m4.projection(gl.canvas.clientWidth, gl.canvas.clientHeight, 400);
     matrix = m4.translate(matrix, translation[0], translation[1], translation[2]);
     matrix = m4.xRotate(matrix, rotation[0]);
     matrix = m4.yRotate(matrix, rotation[1]);
@@ -621,16 +615,13 @@ var m4 = {
     ];
   },
 
-  orthographic: function(left, right, bottom, top, near, far) {
+  projection: function(width, height, depth) {
+    // Note: This matrix flips the Y axis so 0 is at the top.
     return [
-      2 / (right - left), 0, 0, 0,
-      0, 2 / (top - bottom), 0, 0,
-      0, 0, 2 / (near - far), 0,
-
-      (left + right) / (left - right),
-      (bottom + top) / (bottom - top),
-      (near + far) / (near - far),
-      1,
+      2 / width, 0, 0, 0,
+      0, -2 / height, 0, 0,
+      0, 0, 2 / depth, 0,
+      -1, 1, 0, 1,
     ];
   },
 };
