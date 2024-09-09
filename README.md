@@ -13,5 +13,7 @@ Status:
   - [x] 2D scale
   - [x] 2D Matrices
 
-- [ ] 3D
+- [x] 3D
   - [x] Orthographic 3D
+  - [x] 3D Perspective
+  - [x] 3D - Cameras
