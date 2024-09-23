@@ -17,3 +17,6 @@ Status:
   - [x] Orthographic 3D
   - [x] 3D Perspective
   - [x] 3D - Cameras
+
+- [ ] Lighting
+  - [x] Directional Lighting
