@@ -1,11 +1,17 @@
 ### WebGL2Fundamentals
 My personal take on great tutorial https://webgl2fundamentals.org
 
+For textures loading, or testing on a mobile phone, a web server is mandatory.\
+The command `python -m http.server`, at the root of the project, will do it.
+
 Status:
 
 - [x] Fundamentals
   - [x] Fundamentals
   - [x] How it works
+
+- [ ] Image Processing
+  - [ ] Image Processing
 
 - [x] 2D translation, rotation, scale, matrix math
   - [x] 2D translation
