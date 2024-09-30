@@ -11,7 +11,7 @@ Status:
   - [x] How it works
 
 - [ ] Image Processing
-  - [ ] Image Processing
+  - [X] Image Processing
 
 - [x] 2D translation, rotation, scale, matrix math
   - [x] 2D translation
